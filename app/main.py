@@ -14,6 +14,7 @@ style = Style('''
         background-color: rgb(40, 40, 40);
         color: rgb(215, 215, 215);
         font-family: Arial, Helvetica, sans-serif;
+        margin-left: 10px;
     }
 
     button {
@@ -32,20 +33,21 @@ style = Style('''
 ''')
 
 # JavaScript to reset button text after response update
-reset_button_script = Script('''
+reset_button_script = Script(
+    """
     document.body.addEventListener('htmx:afterSwap', function(event) {
         if (event.target.id === 'response') {
             document.getElementById('sb').innerText = 'Send';
         }
     });
-''')
+    """
+    )
 
 @rt("/")
 def get():
-    return Titled("Ollama LLM Chat",
+    return Titled("Ooo... LLama!",
         style,
         reset_button_script,
-        H2("Chat with Local LLM (Ollama)"),
         Form(
             Input(id="userInput", name="prompt", placeholder="Type your message here"),
             Button("Send", id="sb", type="submit", onclick="document.getElementById('sb').innerText = 'Thinking...'") ,
@@ -71,26 +73,7 @@ def post(prompt: str):
         data = response.json()
         response_text = data.get("response", "No response")
 
-        # Auto-detect and format code blocks
-        import re
-        response_text = re.sub(
-            r"```(\w+)?\n([\s\S]*?)```",
-            lambda m: f'<pre><code class="language-{m.group(1) or "plaintext"}">{m.group(2)}</code></pre>',
-            response_text
-        )
-
-        # Add paragraphs for better readability
-        response_text = re.sub(r'(\n\s*\n)+', '</p><p>', response_text)
-        response_text = f'<p>{response_text}</p>'
-
-        # JavaScript to highlight code blocks
-        highlight_script = Script('''
-            document.querySelectorAll("pre code").forEach(el => {
-                hljs.highlightElement(el);
-            });
-        ''')
-
-        return Div(NotStr(response_text)), highlight_script
+        return Div(NotStr(response_text))
 
     except Exception as e:
         return Div(f"Error: {str(e)}")
